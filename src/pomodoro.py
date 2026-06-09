@@ -321,6 +321,7 @@ class PomodoroTimer:
             self.running = False
             if self.timer_id:
                 self.root.after_cancel(self.timer_id)
+            self._update_display()
         else:
             # Currently paused or not started → start/resume
             self.running = True
