@@ -157,8 +157,7 @@ class PomodoroTimer:
             c.pack()
             c.create_oval(2, 2, 18, 18, fill=DOT_EMPTY, outline="")
 
-            mode_key = MODE_ORDER[i]
-            lbl = tk.Label(col, text=MODE_DOT_LABELS[mode_key], font=("Segoe UI", 7),
+            lbl = tk.Label(col, text=f"F{i+1}", font=("Segoe UI", 7),
                            fg=TEXT_SECONDARY, bg=BG)
             lbl.pack()
 
@@ -166,15 +165,12 @@ class PomodoroTimer:
 
         self._update_dots()
 
-        # Buttons — 2x2 grid
+        # Buttons — 2x2 grid (Start/Pause merged, 3 buttons total)
         btn_grid = tk.Frame(self.root, bg=BG)
         btn_grid.pack(pady=(12, 0))
 
-        self.play_btn = RoundedButton(btn_grid, "Start", self.start, BTN_START)
-        self.play_btn.grid(row=0, column=0, padx=5, pady=4)
-
-        self.pause_btn = RoundedButton(btn_grid, "Pause", self.pause, BTN_PAUSE)
-        self.pause_btn.grid(row=0, column=1, padx=5, pady=4)
+        self.play_btn = RoundedButton(btn_grid, "Start", self.start, BTN_START, width=120)
+        self.play_btn.grid(row=0, column=0, columnspan=2, padx=5, pady=4)
 
         self.reset_btn = RoundedButton(btn_grid, "Reset", self.reset, BTN_RESET)
         self.reset_btn.grid(row=1, column=0, padx=5, pady=4)
@@ -225,14 +221,25 @@ class PomodoroTimer:
         self._draw_ring(fraction)
 
     def _update_dots(self):
+        """Dots show FOCUS progress (0-4), color indicates current mode."""
+        current_color = MODE_COLORS[self.mode]
+
         for i, (canvas, label) in enumerate(self.dot_labels):
-            mode_key = MODE_ORDER[i]
-            is_active = (mode_key == self.mode)
-            fill = MODE_COLORS[mode_key] if is_active else DOT_EMPTY
-            fg = MODE_COLORS[mode_key] if is_active else TEXT_SECONDARY
             canvas.delete("all")
-            canvas.create_oval(2, 2, 18, 18, fill=fill, outline="")
-            label.config(fg=fg)
+
+            if i < self.focus_done:
+                # Completed focus — solid fill with current mode color
+                canvas.create_oval(2, 2, 18, 18, fill=current_color, outline="")
+                label.config(fg=current_color)
+            elif self.mode == "focus" and i == self.focus_done:
+                # Currently working on this focus — ring outline
+                canvas.create_oval(2, 2, 18, 18, fill=DOT_EMPTY, outline="")
+                canvas.create_oval(4, 4, 16, 16, outline=current_color, width=2)
+                label.config(fg=current_color)
+            else:
+                # Future focus — empty
+                canvas.create_oval(2, 2, 18, 18, fill=DOT_EMPTY, outline="")
+                label.config(fg=TEXT_SECONDARY)
 
     def _update_display(self):
         self.canvas.itemconfig(self.timer_text, text=self._fmt(self.seconds))
@@ -245,6 +252,15 @@ class PomodoroTimer:
         self.mode_label.config(text=MODE_LABELS[self.mode], fg=color)
         self.subtitle_label.config(text=MODE_SUBTITLES[self.mode])
         self._update_dots()
+
+        # Update play button text based on state
+        if self.running:
+            self.play_btn.text = "Pause"
+        elif self.seconds < self.total_seconds:
+            self.play_btn.text = "Resume"
+        else:
+            self.play_btn.text = "Start"
+        self.play_btn._draw(self.play_btn.bg_color)
 
     # ── Timer engine ───────────────────────────────────────────────
 
@@ -299,26 +315,40 @@ class PomodoroTimer:
     # ── Button actions ─────────────────────────────────────────────
 
     def start(self):
-        if not self.running:
+        """Toggle between start/pause/resume."""
+        if self.running:
+            # Currently running → pause
+            self.running = False
+            if self.timer_id:
+                self.root.after_cancel(self.timer_id)
+        else:
+            # Currently paused or not started → start/resume
             self.running = True
-            self.total_seconds = self.seconds
+            if self.seconds == self.total_seconds:
+                # Fresh start, not resuming
+                pass
             self._update_display()
             self._tick()
 
     def pause(self):
+        """Kept for backwards compatibility, just calls start() to toggle."""
+        self.start()
+
+    def reset(self):
+        """Reset current mode timer to initial value, don't change mode or progress."""
         self.running = False
         if self.timer_id:
             self.root.after_cancel(self.timer_id)
 
-    def reset(self):
-        self.running = False
-        if self.timer_id:
-            self.root.after_cancel(self.timer_id)
-        self.mode = "focus"
-        self.seconds = FOCUS_SEC
-        self.total_seconds = FOCUS_SEC
-        self.focus_done = 0
-        self._update_dots()
+        # Reset to current mode's initial duration
+        mode_durations = {
+            "focus": FOCUS_SEC,
+            "stretch": STRETCH_SEC,
+            "review": REVIEW_SEC,
+            "long_break": LONG_BREAK_SEC,
+        }
+        self.seconds = mode_durations[self.mode]
+        self.total_seconds = self.seconds
         self._update_display()
 
     def skip(self):
@@ -327,11 +357,12 @@ class PomodoroTimer:
             self.root.after_cancel(self.timer_id)
 
         if self.mode == "focus":
-            # Skip work → don't count it, go to the break that would follow
-            if self.focus_done == DOT_COUNT - 1:
+            # Skip work → count it as done, go to the break that would follow
+            self.focus_done += 1
+            if self.focus_done == DOT_COUNT:
                 self.mode = "long_break"
                 self.seconds = LONG_BREAK_SEC
-            elif self.focus_done == 1:
+            elif self.focus_done == 2:
                 self.mode = "review"
                 self.seconds = REVIEW_SEC
             else:
@@ -341,11 +372,11 @@ class PomodoroTimer:
             # Skip break → go to next focus
             if self.mode == "long_break":
                 self.focus_done = 0
-                self._update_dots()
             self.mode = "focus"
             self.seconds = FOCUS_SEC
 
         self.total_seconds = self.seconds
+        self._update_dots()
         self._update_display()
 
 
