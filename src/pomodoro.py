@@ -8,12 +8,12 @@ LONG_BREAK_SEC = 15 * 60
 DOT_COUNT = 4
 MODE_ORDER = ["focus", "stretch", "review", "long_break"]
 
-BG = "#f6ead4"              # Warm cream background
-SURFACE = "#efe0c8"         # Slightly deeper cream
+BG = "#fff4dc"              # Brighter warm cream background
+SURFACE = "#fff0d0"         # Brighter cream surface
 TEXT_PRIMARY = "#4a3f35"    # Deep brown text (soft contrast)
 TEXT_SECONDARY = "#8b7d6b"  # Gray-brown secondary text
-RING_TRACK = "#e5d4bb"      # Progress ring track (pale beige)
-DOT_EMPTY = "#dcc9ae"       # Empty dots
+RING_TRACK = "#f5e6c8"      # Brighter progress ring track
+DOT_EMPTY = "#ecdcbb"       # Brighter empty dots
 
 # Per-mode accent
 MODE_COLORS = {
