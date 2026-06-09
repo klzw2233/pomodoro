@@ -278,11 +278,12 @@ class PomodoroTimer:
         self.running = False
         import threading
 
-        def chime():
-            for freq in [523, 659, 784, 1047]:
-                winsound.Beep(freq, 150)
+        def beep_beep():
+            # Gentle reminder: C5-E5 (major third)
+            winsound.Beep(523, 200)  # C5 (do)
+            winsound.Beep(659, 200)  # E5 (mi)
 
-        threading.Thread(target=chime, daemon=True).start()
+        threading.Thread(target=beep_beep, daemon=True).start()
         self._advance()
 
     def _advance(self):
@@ -356,6 +357,15 @@ class PomodoroTimer:
         self.running = False
         if self.timer_id:
             self.root.after_cancel(self.timer_id)
+
+        # Play gentle reminder sound
+        import threading
+
+        def beep_beep():
+            winsound.Beep(523, 200)  # C5 (do)
+            winsound.Beep(659, 200)  # E5 (mi)
+
+        threading.Thread(target=beep_beep, daemon=True).start()
 
         if self.mode == "focus":
             # Skip work → count it as done, go to the break that would follow
