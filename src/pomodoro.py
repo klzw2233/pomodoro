@@ -8,19 +8,19 @@ LONG_BREAK_SEC = 15 * 60
 DOT_COUNT = 4
 MODE_ORDER = ["focus", "stretch", "review", "long_break"]
 
-BG = "#1a1a2e"
-SURFACE = "#16213e"
-TEXT_PRIMARY = "#eaeaea"
-TEXT_SECONDARY = "#8888aa"
-RING_TRACK = "#2a2a4a"
-DOT_EMPTY = "#3a3a5a"
+BG = "#fff4dc"              # Brighter warm cream background
+SURFACE = "#fff0d0"         # Brighter cream surface
+TEXT_PRIMARY = "#4a3f35"    # Deep brown text (soft contrast)
+TEXT_SECONDARY = "#8b7d6b"  # Gray-brown secondary text
+RING_TRACK = "#f5e6c8"      # Brighter progress ring track
+DOT_EMPTY = "#ecdcbb"       # Brighter empty dots
 
 # Per-mode accent
 MODE_COLORS = {
-    "focus":      "#e94560",  # red
-    "stretch":    "#0f9b8e",  # teal
-    "review":     "#f0a500",  # amber
-    "long_break": "#7c3aed",  # violet
+    "focus":      "#d4845c",  # Warm orange-brown (work)
+    "stretch":    "#8ab88f",  # Soft mint green (activity)
+    "review":     "#e8b563",  # Soft golden (review)
+    "long_break": "#9ba8c7",  # Soft lavender blue (rest)
 }
 MODE_LABELS = {
     "focus":      "FOCUS",
@@ -41,9 +41,9 @@ MODE_DOT_LABELS = {
     "long_break": "REST",
 }
 
-BTN_START = "#e94560"
-BTN_PAUSE = "#f0a500"
-BTN_RESET = "#555577"
+BTN_START = "#d4845c"
+BTN_PAUSE = "#e8b563"
+BTN_RESET = "#a89680"
 
 # 4 dots are mode indicators, not focus-count indicators:
 #   FOCUS · STRETCH · REVIEW · LONG BREAK
