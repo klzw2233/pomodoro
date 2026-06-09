@@ -32,3 +32,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# .claude
+.claude/*
+
+# RELEASE.md
+RELEASE.md
