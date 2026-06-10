@@ -34,7 +34,7 @@ Thumbs.db
 *.log
 
 # .claude
-.claude/*
+.claude/
 
 # RELEASE.md
 RELEASE.md
